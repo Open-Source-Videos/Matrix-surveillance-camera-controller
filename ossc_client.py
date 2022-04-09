@@ -431,12 +431,13 @@ async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
     return "success"
 
 #List video thumbnails of a specified directory in the chat room.
-async def list_videos(client, room_id, path):
+async def list_videos(client, room_id, path, msg_type = "list-video-response", is_for = "0"):
     try:
         for thumb in os.listdir(path): #Collect all items in directory, loop through each item
             if thumb.endswith(".thumb"): #Filter directory contents to only look for video thumbnails
                 vid = path + thumb #Construct the complete file path
-                await send_message(client, room_id, vid) #Send file path to the chat room
+                msg = '{"type" : "' + msg_type + '", "content" : "' + vid + '", "is_for" : "' + is_for + '"}' #Construct json formatted message
+                await send_message(client, room_id, msg) #Send complete message to the chat room
     except Exception as e:
         logger.info(e)
 
@@ -498,14 +499,14 @@ class Callback():
                         logger.info(Exception.with_traceback)
                 
                 #List stored video thumbnails by date
-                if message_data['type'] == "list-videos":
+                if message_data['type'] == "list-video":
                     try:
                         params = message_data['content'].strip().split(",") #Command parameters are comma-separated
-                        cam = params[0] #First argument refers to the camera
+                        cam = CAMERAS[params[0]] #First argument refers to the camera
                         date = params[1] #Second argument refers to the date
                         logger.info("Displaying available video thumbnails for camera " + cam + " on date " + str(date))
                         path = RECORDING_PATH + cam + "/" + date + "/" #Construct file path
-                        await list_videos(self.client, self.room_id, path)
+                        await list_videos(self.client, self.room_id, path, msg_type = "list-video-response", is_for = message_data['is_for'])
 
                     except Exception:
                         msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "is_for" : "' + message_data['is_for'] + '"}'

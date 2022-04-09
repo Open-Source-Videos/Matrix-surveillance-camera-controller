@@ -37,7 +37,15 @@ content = string. Upon a motion detection event a thumbnail is uploaded to every
 
 Example:
 
-`{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camrea1/02-05-2021/15-25-30.mp4.thumb", "is_for":"0"}`
+`{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "is_for":"0"}`
+
+
+### list-video-response:
+content = string. Upon user request to list out stored video thumbnails from a specified storage location, the output will be a json containing the file path to the found video thumbnail.
+
+Example:
+
+`{"type" : "list-video-response", "content" : "/var/lib/motioneye/Camera1/2022-04-03/16-15-27.mp4.thumb", "is_for" : "0"}`
 
 
 ## Types of messages TO camera hub
@@ -68,13 +76,13 @@ content = string. The content needs to contain the camera and the duration comma
 
 Expected reply is a motion detection event after the specified duration.
 
-### list-videos:
+### list-video:
 
-content = string. The content string is broken into the camera parameter and the date parameter. These parameters should match up with the directory names that are used to store media files from the camera. For example, "Camera1,2022-04-08" will refer to files from the "Camera1" camera that were taken on the date 2022-04-08.
+content = string. The content string is broken into the camera parameter and the date parameter. For example, "1,2022-04-08" will refer to files from the camera identified as "camera 1" that were taken on the date 2022-04-08.
 
 Example:
 
-`{"type" : "list-videos", "content" : "Camera1,2022-04-08", "is_for" : "0"}`
+`{"type" : "list-video", "content" : "Camera1,2022-04-08", "is_for" : "0"}`
 
 Expected reply is a series of file paths that point to stored video thumbnail files located in the specified camera and date directories.
 
