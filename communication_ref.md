@@ -68,6 +68,16 @@ content = string. The content needs to contain the camera and the duration comma
 
 Expected reply is a motion detection event after the specified duration.
 
+### list-videos:
+
+content = string. The content string is broken into the camera parameter and the date parameter. These parameters should match up with the directory names that are used to store media files from the camera. For example, "Camera1,2022-04-08" will refer to files from the "Camera1" camera that were taken on the date 2022-04-08.
+
+Example:
+
+{"type" : "list-videos", "content" : "Camera1,2022-04-08", "is_for" : "0"}
+
+Expected reply is a series of file paths that point to stored video thumbnail files located in the specified camera and date directories.
+
 ### cam-config-request: 
 content = string. Content can be null. This will just request to that camera hub send out an updated list of cameras.
 Example:

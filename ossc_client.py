@@ -430,6 +430,16 @@ async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
         return "Video send of file " + video + "failed."
     return "success"
 
+#List video thumbnails of a specified directory in the chat room.
+async def list_videos(client, room_id, path):
+    try:
+        for thumb in os.listdir(path): #Collect all items in directory, loop through each item
+            if thumb.endswith(".thumb"): #Filter directory contents to only look for video thumbnails
+                vid = path + thumb #Construct the complete file path
+                await send_message(client, room_id, vid) #Send file path to the chat room
+    except Exception as e:
+        logger.info(e)
+
 
 #Callbacks list for matrix listening client.
 class Callback():
@@ -485,6 +495,21 @@ class Callback():
                     except Exception:
                         msg = '{"type" : "error", "content" : "Failed to trigger recording. Check request format", "is_for" : "' + message_data['is_for'] + '"}'
                         await send_message(self.client,self.room_id,msg)
+                        logger.info(Exception.with_traceback)
+                
+                #List stored video thumbnails by date
+                if message_data['type'] == "list-videos":
+                    try:
+                        params = message_data['content'].strip().split(",") #Command parameters are comma-separated
+                        cam = params[0] #First argument refers to the camera
+                        date = params[1] #Second argument refers to the date
+                        logger.info("Displaying available video thumbnails for camera " + cam + " on date " + str(date))
+                        path = RECORDING_PATH + cam + "/" + date + "/" #Construct file path
+                        await list_videos(self.client, self.room_id, path)
+
+                    except Exception:
+                        msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "is_for" : "' + message_data['is_for'] + '"}'
+                        await send_message(self.client, self.room_id, msg)
                         logger.info(Exception.with_traceback)
 
                 #Default other messages
