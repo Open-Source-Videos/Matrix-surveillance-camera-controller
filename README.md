@@ -160,7 +160,9 @@ DONE - Create video on demand service.
 
 TODO - Network loss tolerance check
 TODO - Unit tests
-TODO - QR crap - if front end gets their act together
+TODO - QR setup maybe?
+TODO - History video request. Will require send_image refactor
+TODO - Replace "is_for" with "requestor_id"
 
 
 ## For QR reader we will need extra tools:
