@@ -135,9 +135,9 @@ class EventHandler():
                 while not magic.from_file(event.src_path, mime=True).startswith("image/") and i < 10:
                     await asyncio.sleep(1)
                     i += 1
-                result = await send_image(self.client, self.room_id, str(event.src_path), is_for="0", msg_type="thumbnail")
+                result = await send_image(self.client, self.room_id, str(event.src_path), requestor_id="0", msg_type="thumbnail")
                 if result != "success":
-                    msg = '{"type" : "error", "content" :"' + result + '", "is_for" : "0"}'
+                    msg = '{"type" : "error", "content" :"' + result + '", "requestor_id" : "0"}'
                     await send_message(self.client, self.room_id, msg)
             except Exception as error:
                 logger.info("Motion detect image thumb send fail" + str(error))
@@ -163,7 +163,7 @@ class EventHandler():
 
 
 #Take a snapshot and upload it to the client, room. Camera number required.
-async def snapshot_upload(client, room_id, camera, is_for = 0):
+async def snapshot_upload(client, room_id, camera, requestor_id = 0):
     impath = RECORDING_PATH + "snapshot.jpg"
     command = "curl -m 10 -o " + impath + " http://localhost:8765/picture/" + str(camera) + "/current"
     try:
@@ -175,9 +175,9 @@ async def snapshot_upload(client, room_id, camera, is_for = 0):
             i += 1
 
         logger.info("Snapshot should be taken. Attempting to upload")
-        result = await send_image(client, room_id, impath, is_for = str(is_for), msg_type="snapshot-send")
+        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send")
         if result != "success":
-            msg = '{"type" : "error", "content" :"' + result + '", "is_for":"' + str(is_for) + '"}'
+            msg = '{"type" : "error", "content" :"' + result + '", "requestor_id":"' + str(requestor_id) + '"}'
             await send_message(client, room_id, msg)
     except Exception:
         logger.info("Failed to take and upload snapshot: " + str(Exception))
@@ -216,7 +216,7 @@ def write_details_to_disk(resp: LoginResponse, homeserver, room_id) -> None:
 
 #Formats a camera configuration send event, and sends it.
 async def send_cam_configs(client, room_id):
-    msg = '{"type" : "cam-config", "content" : "' + str(CAMERAS) + '", "is_for" : "0"}'
+    msg = '{"type" : "cam-config", "content" : "' + str(CAMERAS) + '", "requestor_id" : "0"}'
     await send_message(client, room_id, msg)
 
 #Finds all camera configuration files, and then extracts numbers and names
@@ -272,7 +272,7 @@ def alias_check(room_id) -> bool:
 
 
 #Send Image File To Room
-async def send_image(client, room_id, image, is_for = "0", msg_type = "blank"):
+async def send_image(client, room_id, image, requestor_id = "0", msg_type = "blank"):
 
     #Checks to see if the file is an image format
     mime_type = magic.from_file(image, mime=True) 
@@ -299,7 +299,7 @@ async def send_image(client, room_id, image, is_for = "0", msg_type = "blank"):
         logger.info(f"Failed to upload image. Failure response: {resp}")
         return "Failed to upload file"
 
-    msg = '{"type":"' + msg_type + '", "content" : "' + image + '", "is_for":"' + is_for + '"}'
+    msg = '{"type":"' + msg_type + '", "content" : "' + image + '", "requestor_id":"' + requestor_id + '"}'
 
     # Now that the image has been uploaded, we need to message the room with this uploaded file.
     content = {
@@ -356,7 +356,7 @@ async def record_video(client, room_id, duration=10, cam_id="1"):
     port = get_motion_config_port()
     logger.info("port: " + port)
     if port == "fail":
-        err = '{"type" : "error", "content" : "Unable to find motion config port. Cannot trigger recording manually.", "is_for":"0"}'
+        err = '{"type" : "error", "content" : "Unable to find motion config port. Cannot trigger recording manually.", "requestor_id":"0"}'
         send_message(client, room_id, err)
     else:
         command = 'curl "http://localhost:' + port + '/' + cam_id + '/config/set?emulate_motion=1"'
@@ -373,7 +373,7 @@ async def record_video(client, room_id, duration=10, cam_id="1"):
 
 
 #Send Video File to room.
-async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
+async def send_video(client, room_id, video, msg_type="blank", requestor_id="0"):
 
     #Make sure file is video type
     mime_type = magic.from_file(video, mime=True) 
@@ -400,7 +400,7 @@ async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
         return "Video send of file " + video + "failed."
 
     # Now that the video has been uploaded, we need to message the room with this uploaded file.
-    msg = '{"type":"' + msg_type + '", "content" : "' + os.path.basename(video) + '", "is_for":"' + is_for + '"}'
+    msg = '{"type":"' + msg_type + '", "content" : "' + os.path.basename(video) + '", "requestor_id":"' + requestor_id + '"}'
 
     #Build content package for message
     content = {
@@ -431,12 +431,12 @@ async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
     return "success"
 
 #List video thumbnails of a specified directory in the chat room.
-async def list_videos(client, room_id, path, msg_type = "list-video-response", is_for = "0"):
+async def list_videos(client, room_id, path, msg_type = "list-video-response", requestor_id = "0"):
     try:
         for thumb in os.listdir(path): #Collect all items in directory, loop through each item
             if thumb.endswith(".thumb"): #Filter directory contents to only look for video thumbnails
                 vid = path + thumb #Construct the complete file path
-                msg = '{"type" : "' + msg_type + '", "content" : "' + vid + '", "is_for" : "' + is_for + '"}' #Construct json formatted message
+                msg = '{"type" : "' + msg_type + '", "content" : "' + vid + '", "requestor_id" : "' + requestor_id + '"}' #Construct json formatted message
                 await send_message(client, room_id, msg) #Send complete message to the chat room
     except Exception as e:
         logger.info(e)
@@ -463,16 +463,16 @@ class Callback():
                 #Snapshot indicates a request for a live picture from a camera.
                 if message_data['type'] == "snapshot":
                     logger.info("Attempting to upload snapshot.")
-                    await snapshot_upload(self.client, self.room_id, message_data['content'], is_for = message_data['is_for'])
-                    logger.info("Snapshot taken, and uploaded for camera " + str(message_data.camera) + " - for - " + message_data['is_for'])
+                    await snapshot_upload(self.client, self.room_id, message_data['content'], requestor_id = message_data['requestor_id'])
+                    logger.info("Snapshot taken, and uploaded for camera " + str(message_data.camera) + " - for - " + message_data['requestor_id'])
                 
                 #Video-request is an upload request for a video that matches a supplied thumbnail.
                 if message_data['type'] == "video-request":
                     if message_data['content'].endswith('.thumb'):
                         logger.info("Attempting to upload video: " + message_data['content'][:-6])
-                        result = await send_video(self.client, self.room_id, message_data['content'][:-6], msg_type="video-send", is_for = message_data['is_for'])
+                        result = await send_video(self.client, self.room_id, message_data['content'][:-6], msg_type="video-send", requestor_id = message_data['requestor_id'])
                         if result != 'success':
-                            msg = '{"type" : "error", "content" : "' + result + '", "is_for" : "' + message_data['is_for'] + '"}'
+                            msg = '{"type" : "error", "content" : "' + result + '", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                             await send_message(self.client, self.room_id, msg)
                     else:
                         logger.info("Improperly formatted command: " + message_data['content'])
@@ -494,7 +494,7 @@ class Callback():
                             dur = 1
                         await record_video(self.client, self.room_id, dur, cam)
                     except Exception:
-                        msg = '{"type" : "error", "content" : "Failed to trigger recording. Check request format", "is_for" : "' + message_data['is_for'] + '"}'
+                        msg = '{"type" : "error", "content" : "Failed to trigger recording. Check request format", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                         await send_message(self.client,self.room_id,msg)
                         logger.info(Exception.with_traceback)
                 
@@ -506,10 +506,10 @@ class Callback():
                         date = params[1] #Second argument refers to the date
                         logger.info("Displaying available video thumbnails for camera " + cam + " on date " + str(date))
                         path = RECORDING_PATH + cam + "/" + date + "/" #Construct file path
-                        await list_videos(self.client, self.room_id, path, msg_type = "list-video-response", is_for = message_data['is_for'])
+                        await list_videos(self.client, self.room_id, path, msg_type = "list-video-response", requestor_id = message_data['requestor_id'])
 
                     except Exception:
-                        msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "is_for" : "' + message_data['is_for'] + '"}'
+                        msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                         await send_message(self.client, self.room_id, msg)
                         logger.info(Exception.with_traceback)
 

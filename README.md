@@ -157,12 +157,12 @@ DONE - Eliminate Hachiko dependency.
 DONE - NEEDS CHECKING POSSIBLE REFACTOR - ADD ID to messages / requests
 DONE - For Raspberry PI 4 - Create install / setup script
 DONE - Create video on demand service.
+DONE - Replace "is_for" with "requestor_id"
 
 TODO - Network loss tolerance check
 TODO - Unit tests
 TODO - QR setup maybe?
 TODO - History video request. Will require send_image refactor
-TODO - Replace "is_for" with "requestor_id"
 
 
 ## For QR reader we will need extra tools:
