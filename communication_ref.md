@@ -82,7 +82,7 @@ content = string. The content string is broken into the camera parameter and the
 
 Example:
 
-`{"type" : "list-video", "content" : "Camera1,2022-04-08", "requestor_id" : "0"}`
+`{"type" : "list-video", "content" : "1,2022-04-08", "requestor_id" : "0"}`
 
 Expected reply is a series of file paths that point to stored video thumbnail files located in the specified camera and date directories.
 
