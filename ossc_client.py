@@ -242,6 +242,12 @@ async def read_cam_configs():
 
 # Basic Message send to room.
 async def send_message(client, room_id, message_text):
+    try:
+        if client.should_upload_keys:
+            await client.keys_upload()
+    except Exception as e:
+        logger.info("Problem synching keys: " + str(e))
+
     content = {"msgtype": "m.text", "body": message_text}
     try:
         await client.room_send(
@@ -273,6 +279,11 @@ def alias_check(room_id) -> bool:
 
 #Send Image File To Room
 async def send_image(client, room_id, image, is_for = "0", msg_type = "blank"):
+    try:
+        if client.should_upload_keys:
+            await client.keys_upload()
+    except Exception as e:
+        logger.info("Problem synching keys: " + str(e))
 
     #Checks to see if the file is an image format
     mime_type = magic.from_file(image, mime=True) 
@@ -374,6 +385,11 @@ async def record_video(client, room_id, duration=10, cam_id="1"):
 
 #Send Video File to room.
 async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
+    try:
+        if client.should_upload_keys:
+            await client.keys_upload()
+    except Exception as e:
+        logger.info("Problem synching keys: " + str(e))
 
     #Make sure file is video type
     mime_type = magic.from_file(video, mime=True) 
