@@ -135,7 +135,7 @@ class EventHandler():
                 while not magic.from_file(event.src_path, mime=True).startswith("image/") and i < 10:
                     await asyncio.sleep(1)
                     i += 1
-                result = await send_image(self.client, self.room_id, str(event.src_path), requestor_id="0", msg_type="thumbnail")
+                result = await send_image(self.client, self.room_id, str(event.src_path), requestor_id="0", msg_type="thumbnail", text=str(event.src_path))
                 if result != "success":
                     msg = '{"type" : "error", "content" :"' + result + '", "requestor_id" : "0"}'
                     await send_message(self.client, self.room_id, msg)
@@ -175,7 +175,7 @@ async def snapshot_upload(client, room_id, camera, requestor_id = 0):
             i += 1
 
         logger.info("Snapshot should be taken. Attempting to upload")
-        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send")
+        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send", text=str(camera))
         if result != "success":
             msg = '{"type" : "error", "content" :"' + result + '", "requestor_id":"' + str(requestor_id) + '"}'
             await send_message(client, room_id, msg)
@@ -278,7 +278,11 @@ def alias_check(room_id) -> bool:
 
 
 #Send Image File To Room
-async def send_image(client, room_id, image, is_for = "0", msg_type = "blank"):
+async def send_image(client, room_id, image, requestor_id = "0", msg_type = "blank", text = ""):
+    #Adding support for custom text in image send
+    if text == "":
+        text = image
+
     try:
         if client.should_upload_keys:
             await client.keys_upload()
@@ -310,7 +314,7 @@ async def send_image(client, room_id, image, is_for = "0", msg_type = "blank"):
         logger.info(f"Failed to upload image. Failure response: {resp}")
         return "Failed to upload file"
 
-    msg = '{"type":"' + msg_type + '", "content" : "' + image + '", "requestor_id":"' + requestor_id + '"}'
+    msg = '{"type":"' + msg_type + '", "content" : "' + text + '", "requestor_id":"' + requestor_id + '"}'
 
     # Now that the image has been uploaded, we need to message the room with this uploaded file.
     content = {
@@ -384,7 +388,7 @@ async def record_video(client, room_id, duration=10, cam_id="1"):
 
 
 #Send Video File to room.
-async def send_video(client, room_id, video, msg_type="blank", is_for="0"):
+async def send_video(client, room_id, video, msg_type="blank", requestor_id="0"):
     try:
         if client.should_upload_keys:
             await client.keys_upload()

@@ -158,6 +158,8 @@ DONE - NEEDS CHECKING POSSIBLE REFACTOR - ADD ID to messages / requests
 DONE - For Raspberry PI 4 - Create install / setup script
 DONE - Create video on demand service.
 DONE - Replace "is_for" with "requestor_id"
+DONE - Synch keys on every message send.
+DONE - Refactor send_image function to allow for custom "content" in JSON for send.
 
 TODO - Network loss tolerance check
 TODO - Unit tests
