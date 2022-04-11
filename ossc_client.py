@@ -23,9 +23,9 @@ from nio import AsyncClient, AsyncClientConfig, LoginResponse, UploadResponse, R
 config = configparser.ConfigParser()
 try:
     config.read('/var/lib/ossc_client/config.cfg')
-except Exception:
+except Exception as e:
     print("CONFIG FILE NOT FOUND!")
-    print(Exception)
+    print(e)
     sys.exit(1)
 
 CRED_FILE = config['FILES']['cred_file']
@@ -41,9 +41,9 @@ try:
     #Setup for logging
     logging.basicConfig(filename=(LOG_PATH + "ossc_client.log"),level=logging.INFO, format='%(asctime)s - %(message)s') #Config without an output file
     logger = logging.getLogger("ossc_client_log")
-except Exception:
+except Exception as e:
     print("Logging directory not found. Please check config, and or create the correct directory. Exiting")
-    print(Exception)
+    print(e)
     sys.exit(1)
 
 
@@ -107,8 +107,8 @@ class EventHandler():
             camnum = camnum.replace('.conf', '')
             try:
                 del CAMERAS[camnum]
-            except Exception:
-                logger.info("Failed to remove camera config: " + str(Exception))
+            except Exception as e:
+                logger.info("Failed to remove camera config: " + str(e))
 
             logger.info("Camera config modified: " + camnum + " removed")
             #Update cam configs
@@ -179,8 +179,8 @@ async def snapshot_upload(client, room_id, camera, requestor_id = 0):
         if result != "success":
             msg = '{"type" : "error", "content" :"' + result + '", "requestor_id":"' + str(requestor_id) + '"}'
             await send_message(client, room_id, msg)
-    except Exception:
-        logger.info("Failed to take and upload snapshot: " + str(Exception))
+    except Exception as e:
+        logger.info("Failed to take and upload snapshot: " + str(e))
     
 
 #Creates file monitor, and event handler, then waits. Watches cam files, and config files.
@@ -257,8 +257,8 @@ async def send_message(client, room_id, message_text):
             ignore_unverified_devices=True,
         )
         logger.info("Message send success")
-    except Exception:
-        logger.info("Failed to send message: " + str(Exception))
+    except Exception as e:
+        logger.info("Failed to send message: " + str(e))
 
 
 # If the room given could be an alias try to resolve it into a room ID - Unused. Private rooms don't use aliases
@@ -345,8 +345,8 @@ async def send_image(client, room_id, image, requestor_id = "0", msg_type = "bla
             ignore_unverified_devices=True,
         )
         logger.info("Image send successful")
-    except Exception:
-        logger.info("Image send failure: " + str(Exception))
+    except Exception as e:
+        logger.info("Image send failure: " + str(e))
         return "Image send of file failed."
 
     return "success"
@@ -445,8 +445,8 @@ async def send_video(client, room_id, video, msg_type="blank", requestor_id="0")
             ignore_unverified_devices=True,
         )
         logger.info("Video send success: " + video)
-    except Exception:
-        logger.info("Video send fail: " + str(Exception))
+    except Exception as e:
+        logger.info("Video send fail: " + str(e))
         return "Video send of file " + video + "failed."
     return "success"
 
@@ -513,10 +513,10 @@ class Callback():
                         elif dur < 1:
                             dur = 1
                         await record_video(self.client, self.room_id, dur, cam)
-                    except Exception:
+                    except Exception as e:
                         msg = '{"type" : "error", "content" : "Failed to trigger recording. Check request format", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                         await send_message(self.client,self.room_id,msg)
-                        logger.info(Exception.with_traceback)
+                        logger.info("Failed to record video" + str(e))
                 
                 #List stored video thumbnails by date
                 if message_data['type'] == "list-video":
@@ -528,16 +528,16 @@ class Callback():
                         path = RECORDING_PATH + cam + "/" + date + "/" #Construct file path
                         await list_videos(self.client, self.room_id, path, msg_type = "list-video-response", requestor_id = message_data['requestor_id'])
 
-                    except Exception:
+                    except Exception as e:
                         msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                         await send_message(self.client, self.room_id, msg)
-                        logger.info(Exception.with_traceback)
+                        logger.info("Failed to list contents of media directory" + str(e))
 
                 #Default other messages
                 else:
                     logger.info("Message not for this client, or improperly formatted") 
-            except Exception:
-                logger.error("Action on incoming message error: " + str(Exception))
+            except Exception as e:
+                logger.error("Action on incoming message error: " + str(e))
         return
 
 
@@ -548,8 +548,8 @@ async def start_listening(client, room_id) -> None:
     while True:
         try:
             await client.sync_forever(timeout=30000, full_state=True)
-        except Exception:
-            logger.info("Client syncing failed. Will try again")
+        except Exception as e:
+            logger.info("Client syncing failed. Will try again: " + str(e))
 
 
 
@@ -645,8 +645,8 @@ async def login() -> AsyncClient:
                     user_id=config['user_id'], device_id=config['device_id'], access_token=config['access_token'])
                 room_id=config['room_id']
                 logger.info("Login restored")
-        except Exception:
-            logger.error("Failed to restore login. Try deleting credentials file and logging back in.")
+        except Exception as e:
+            logger.error("Failed to restore login. Try deleting credentials file and logging back in: " + str(e))
 
     # Keys, syncing with server. Retry on failure
     while True:
@@ -657,8 +657,8 @@ async def login() -> AsyncClient:
             await client.sync(timeout=30000, full_state=True)
             logger.info("Client synch complete")
             return client, room_id
-        except Exception:
-            logger.error("Failed to sync with server. Waiting 20 seconds and trying again")
+        except Exception as e:
+            logger.error("Failed to sync with server. Waiting 20 seconds and trying again: " + str(e))
             await asyncio.sleep(20)
 
 
