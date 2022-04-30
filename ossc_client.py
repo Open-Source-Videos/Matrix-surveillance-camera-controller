@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import time
+from datetime import datetime, date, time
 import getpass
 from PIL import Image
 import aiofiles.os
@@ -451,13 +452,11 @@ async def send_video(client, room_id, video, msg_type="blank", requestor_id="0")
     return "success"
 
 #List video thumbnails of a specified directory in the chat room.
-async def list_videos(client, room_id, path, msg_type = "list-video-response", requestor_id = "0"):
+async def list_recordings(client, room_id, date_range, files_in_range, msg_type = "list-video-response", requestor_id = "0"):
     try:
-        for thumb in os.listdir(path): #Collect all items in directory, loop through each item
-            if thumb.endswith(".thumb"): #Filter directory contents to only look for video thumbnails
-                vid = path + thumb #Construct the complete file path
-                msg = '{"type" : "' + msg_type + '", "content" : "' + vid + '", "requestor_id" : "' + requestor_id + '"}' #Construct json formatted message
-                await send_message(client, room_id, msg) #Send complete message to the chat room
+        for file in files_in_range:
+            msg = '{"type" : "' + msg_type + '", "content" : "' + file + '", "requestor_id" : "' + requestor_id + '"}' #Construct json formatted message
+            await send_message(client, room_id, msg) #Send complete message to the chat room
     except Exception as e:
         logger.info(e)
 
@@ -519,14 +518,42 @@ class Callback():
                         logger.info("Failed to record video" + str(e))
                 
                 #List stored video thumbnails by date
-                if message_data['type'] == "list-video":
+                if message_data['type'] == "list-recordings":
                     try:
-                        params = message_data['content'].strip().split(",") #Command parameters are comma-separated
-                        cam = CAMERAS[params[0]] #First argument refers to the camera
-                        date = params[1] #Second argument refers to the date
-                        logger.info("Displaying available video thumbnails for camera " + cam + " on date " + str(date))
-                        path = RECORDING_PATH + cam + "/" + date + "/" #Construct file path
-                        await list_videos(self.client, self.room_id, path, msg_type = "list-video-response", requestor_id = message_data['requestor_id'])
+                        all_recordings = os.scandir(path = RECORDING_PATH) #Capture camera file paths
+
+                        date_range = message_data['content'].strip().split(",") #Command parameters are comma-separated
+                        startDate = datetime.fromisoformat(date_range[0]) #Convert to datetime
+                        start = str(startDate) #Convert to string to allow split parsing
+                        startSplit = start.split(" ") #Separate date and time
+                        startDSplit = startSplit[0].split("-") #Parse out start date
+                        dstart = date(int(startDSplit[0]),int(startDSplit[1]),int(startDSplit[2])) #Create date type from date numbers
+                        endDate = datetime.fromisoformat(date_range[1]) #Convert to datetime
+                        end = str(endDate) #Convert to string to allow split parsing
+                        endSplit = end.split(" ") #Separate date and time
+                        endDSplit = endSplit[0].split("-") #Parse out end date
+                        dend = date(int(endDSplit[0]),int(endDSplit[1]),int(endDSplit[2])) #Create date type from date numbers
+
+                        files_in_range = [] #Holds file paths in range
+                        tformat = "%Y-%m-%d %H-%M-%S" #Sets datetime formatting
+                        for cam in all_recordings: #Loop through camera directories
+                            if(cam.name.startswith('Cam')): #Exclude snapshot
+                                dates = os.scandir(cam.path) #Scan camera directory for date subdirectories
+                                for d in dates: #Loop through date directories
+                                    if(d.name != "lastsnap.jpg"): #Exclude lastsnap
+                                        nameSplit = d.name.split("-") #Parse date name
+                                        dname = date(int(nameSplit[0]), int(nameSplit[1]), int(nameSplit[2])) #Convert to date type
+                                        if dname >= dstart and dname <= dend: #Compare dates
+                                            camRecords = os.scandir(d.path) #Scan date directory for video recordings
+                                            for f in camRecords: #Loop through date directories
+                                                if f.name.endswith(".mp4.thumb"):
+                                                    file = os.path.splitext(f.name) #Parse out .thumb extension
+                                                    file = os.path.splitext(file[0]) #Parse out .mpt extension
+                                                    dt = d.name + " " + file[0] #Construct datetime format
+                                                    dtf = datetime.strptime(dt, tformat) #Convert to datetime.datetime type
+                                                    if dtf >= startDate and dtf <= endDate: #Compare datetime of file
+                                                        files_in_range.append(f.path) #A file that passes above checks must be within specified date range, add to list
+                        await list_recordings(self.client, self.room_id, date_range, files_in_range, msg_type = "list-video-response", requestor_id = message_data['requestor_id'])
 
                     except Exception as e:
                         msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "requestor_id" : "' + message_data['requestor_id'] + '"}'
