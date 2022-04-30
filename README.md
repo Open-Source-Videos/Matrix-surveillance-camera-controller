@@ -167,7 +167,7 @@ TODO - Network loss tolerance check
 TODO - Unit tests
 TODO - QR setup maybe?
 TODO - History video request.
-
+TODO - Notify front End if storage is full.
 
 ## For QR reader we will need extra tools:
 

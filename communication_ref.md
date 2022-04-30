@@ -93,3 +93,11 @@ Example:
 `{"type" : "cam-config-request", "content" : "", "requestor_id":"my_client_name"}`
 
 Expected reply is a cam-config message.
+
+### list-recordings:
+content = string. String should be two dates. Start Datetime, followed by end datetime, 24 hour clock. 'stardatetime, enddatetime' in the format 'YYYY-MM-DD HH-MM-SS, YYYY-MM-DD HH-MM-SS'.
+The following example will request a list of recordings between April 27th 2022, at 10:30:00 AM, and April 28th 2022, at 2:45:30 PM.
+
+`{"type" : "list-recordings", "content" : "2022-04-27T10-30-00, 2022-04-28T14-45-30", "requestor_id":"my_client_name"}`
+
+Expected reply is a list of all saved recordings for that time duration.
