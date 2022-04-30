@@ -161,10 +161,12 @@ DONE - Replace "is_for" with "requestor_id"
 DONE - Synch keys on every message send.
 DONE - Refactor send_image function to allow for custom "content" in JSON for send.
 
+
+TODO - Encrypted Key Backup
 TODO - Network loss tolerance check
 TODO - Unit tests
 TODO - QR setup maybe?
-TODO - History video request. Will require send_image refactor
+TODO - History video request.
 
 
 ## For QR reader we will need extra tools:

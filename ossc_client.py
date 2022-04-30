@@ -554,6 +554,7 @@ class Callback():
                                                     if dtf >= startDate and dtf <= endDate: #Compare datetime of file
                                                         files_in_range.append(f.path) #A file that passes above checks must be within specified date range, add to list
                         await list_recordings(self.client, self.room_id, date_range, files_in_range, msg_type = "list-video-response", requestor_id = message_data['requestor_id'])
+
                     except Exception as e:
                         msg = '{"type" : "error", "content" : "Failed to list media directory contents. Check request format", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                         await send_message(self.client, self.room_id, msg)
