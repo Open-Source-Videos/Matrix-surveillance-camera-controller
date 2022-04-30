@@ -40,12 +40,12 @@ Example:
 `{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"0"}`
 
 
-### list-video-response:
-content = string. Upon user request to list out stored video thumbnails from a specified storage location, the output will be a json containing the file path to the found video thumbnail.
+### list-recording-reply:
+content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the file paths to the found video thumbnails. These thumbnail file paths can then be used to request the videos.
 
 Example:
 
-`{"type" : "list-video-response", "content" : "/var/lib/motioneye/Camera1/2022-04-03/16-15-27.mp4.thumb", "requestor_id" : "0"}`
+`{"type" : "list-recording-reply", "content" : "{'date_range': '2022-04-28T10:30:00, 2022-04-30T20:45:30', 'recordings': ['/var/lib/motioneye/Camera1/2022-04-29/03-30-03.mp4.thumb', '/var/lib/motioneye/Camera1/2022-04-29/03-15-50.mp4.thumb']}", "requestor_id" : "0"}`
 
 
 ## Types of messages TO camera hub
