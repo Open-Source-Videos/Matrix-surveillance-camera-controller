@@ -40,12 +40,12 @@ Example:
 `{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"0"}`
 
 
-### list-video-response:
-content = string. Upon user request to list out stored video thumbnails from a specified storage location, the output will be a json containing the file path to the found video thumbnail.
+### list-recording-reply:
+content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the file paths to the found video thumbnails. These thumbnail file paths can then be used to request the videos.
 
 Example:
 
-`{"type" : "list-video-response", "content" : "/var/lib/motioneye/Camera1/2022-04-03/16-15-27.mp4.thumb", "requestor_id" : "0"}`
+`{"type" : "list-recording-reply", "content" : "{'date_range': '2022-04-28T10:30:00, 2022-04-30T20:45:30', 'recordings': ['/var/lib/motioneye/Camera1/2022-04-29/03-30-03.mp4.thumb', '/var/lib/motioneye/Camera1/2022-04-29/03-15-50.mp4.thumb']}", "requestor_id" : "0"}`
 
 
 ## Types of messages TO camera hub
@@ -93,3 +93,11 @@ Example:
 `{"type" : "cam-config-request", "content" : "", "requestor_id":"my_client_name"}`
 
 Expected reply is a cam-config message.
+
+### list-recordings:
+content = string. String should be two dates. Start Datetime, followed by end datetime, 24 hour clock. 'stardatetime, enddatetime' in the format 'YYYY-MM-DD HH-MM-SS, YYYY-MM-DD HH-MM-SS'.
+The following example will request a list of recordings between April 27th 2022, at 10:30:00 AM, and April 28th 2022, at 2:45:30 PM.
+
+`{"type" : "list-recordings", "content" : "2022-04-27T10-30-00, 2022-04-28T14-45-30", "requestor_id":"my_client_name"}`
+
+Expected reply is a list of all saved recordings for that time duration.
