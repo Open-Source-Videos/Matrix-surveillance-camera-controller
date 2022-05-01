@@ -497,6 +497,17 @@ class Callback():
                     else:
                         logger.info("Improperly formatted command: " + message_data['content'])
                 
+                #thumb-request is a request to upload the thumbnail for the file specified.
+                if message_data['type'] == "thumb-request":
+                    if message_data['content'].endswith('.thumb'):
+                        logger.info("Attempting to upload thumbnail for file: " + message_data['content'])
+                        result = await send_image(self.client, self.room_id, message_data['content'], requestor_id = message_data['requestor_id'], msg_type = "thumb-send", text = message_data['content'])
+                        if result != 'success':
+                            msg = '{"type" : "error", "content" : "' + result + '", "requestor_id" : "' + message_data['requestor_id'] + '"}'
+                            await send_message(self.client, self.room_id, msg)
+                    else:
+                        logger.info("Improperly formatted command: " + message_data['content'])
+                
                 #Cam config request is a general get request for all cameras.
                 if message_data['type'] == "cam-config-request":
                     await send_cam_configs(self.client, self.room_id)
