@@ -40,6 +40,15 @@ Example:
 `{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"0"}`
 
 
+### thumb-reply: 
+content = string. When a thumbnail for a particular video is requested this reply is the thumbnail.
+
+Example:
+
+`{"type" : "thumb-reply", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"client_that_requested"}`
+
+
+
 ### list-recording-reply:
 content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the file paths to the found video thumbnails. These thumbnail file paths can then be used to request the videos.
 
@@ -66,6 +75,16 @@ Example:
 `{"type" : "video-request", "content" : "/var/lib/motioneye/Camrea1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"my_client_name"}`
 
 Expected reply is a video directed to the client specified in the requestor_id field that matches the thumbnail or an error.
+
+
+### thumb-request:
+content = string. The content string should be the fully qualified name for a thumbnail which is requested.
+
+Example:
+
+`{"type" : "thumb-request", "content" : "/var/lib/motioneye/Camrea1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"my_client_name"}`
+
+Expected reply is the thumbnail file directed to the client specified in the requestor_id field that matches the thumbnail or an error. 
 
 ### record-video:
 Note on this, it triggers a simulated motion detection for the specified duration in seconds. So it'll appear to everyone as if its a motion detection event video. Maximum duration is 300 seconds, and a minimum of 1 second.
@@ -98,6 +117,6 @@ Expected reply is a cam-config message.
 content = string. String should be two dates. Start Datetime, followed by end datetime, 24 hour clock. 'stardatetime, enddatetime' in the format 'YYYY-MM-DD HH-MM-SS, YYYY-MM-DD HH-MM-SS'.
 The following example will request a list of recordings between April 27th 2022, at 10:30:00 AM, and April 28th 2022, at 2:45:30 PM.
 
-`{"type" : "list-recordings", "content" : "2022-04-27T10-30-00, 2022-04-28T14-45-30", "requestor_id":"my_client_name"}`
+`{"type" : "list-recordings", "content" : "2022-04-27T10:30:00, 2022-04-28T14:45:30", "requestor_id":"my_client_name"}`
 
 Expected reply is a list of all saved recordings for that time duration.
