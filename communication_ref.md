@@ -50,11 +50,11 @@ Example:
 
 
 ### list-recording-reply:
-content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the file paths to the found video thumbnails. These thumbnail file paths can then be used to request the videos.
+content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the pairs of file paths to the found video thumbnails, and their time stamps. These thumbnail file paths can then be used to request the videos.
 
 Example:
 
-`{"type" : "list-recording-reply", "content" : "{'date_range': '2022-04-28T10:30:00, 2022-04-30T20:45:30', 'recordings': ['/var/lib/motioneye/Camera1/2022-04-29/03-30-03.mp4.thumb', '/var/lib/motioneye/Camera1/2022-04-29/03-15-50.mp4.thumb']}", "requestor_id" : "0"}`
+`{"type" : "list-recording-reply", "content" : "{'date_range': '2022-05-06T00:00:01, 2022-05-06T14:10:00', 'recordings': [['/var/lib/motioneye/Camera1/2022-05-06/00-58-33.mp4.thumb', '2022-05-06T00:58:33'], ['/var/lib/motioneye/Camera1/2022-05-06/12-31-45.mp4.thumb', '2022-05-06T12:31:45'], ['/var/lib/motioneye/Camera1/2022-05-06/01-01-20.mp4.thumb', '2022-05-06T01:01:20']]}", "requestor_id" : "my_client_name"}`
 
 
 ## Types of messages TO camera hub

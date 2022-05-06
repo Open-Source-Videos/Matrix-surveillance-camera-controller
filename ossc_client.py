@@ -585,7 +585,7 @@ class Callback():
                                                     dtf = datetime.strptime(dt, tformat) #Convert to datetime.datetime type
                                                     if dtf >= startDate and dtf <= endDate: #Compare datetime of file
                                                         logger.info("Found Path in range: " + f.path)
-                                                        files_in_range.append(f.path) #A file that passes above checks must be within specified date range, add to list
+                                                        files_in_range.append([f.path, str(extract_time_stamp(f.path))]) #A file that passes above checks must be within specified date range, add to list
                         await send_recording_list(self.client, self.room_id, message_data['content'], files_in_range, msg_type = "list-recording-reply", requestor_id = message_data['requestor_id'])
 
                     except Exception as e:
