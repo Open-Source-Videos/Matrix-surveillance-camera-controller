@@ -19,11 +19,11 @@ Example:
 `{"type" : "error", "content" : "File Upload Failed", "requestor_id":"0"}`
 
 ### snapshot-send: 
-content = string - is the camera ID for the snapshot whose picture is taken. This is the reply to a snapshot request.
+content = string - is the camera ID for the snapshot whose picture is taken, comma separated is the time at which the image is taken. This is the reply to a snapshot request.
 
 Example:
 
-`{"type" : "snapshot-send", "content" : "1", "requestor_id":"client_that_requested"}`
+`{"type" : "snapshot-send", "content" : "1,2022-05-06T13:04:04.482374", "requestor_id":"client_that_requested"}`
 
 ### video-send: 
 content = string - contains the path / name of the video. This is sent to the client that requested it.

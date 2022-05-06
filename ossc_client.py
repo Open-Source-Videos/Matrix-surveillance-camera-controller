@@ -176,7 +176,8 @@ async def snapshot_upload(client, room_id, camera, requestor_id = 0):
             i += 1
 
         logger.info("Snapshot should be taken. Attempting to upload")
-        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send", text=str(camera))
+        msg_text = str(camera) + "," + str(datetime.now().isoformat())
+        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send", text=msg_text)
         if result != "success":
             msg = '{"type" : "error", "content" :"' + result + '", "requestor_id":"' + str(requestor_id) + '"}'
             await send_message(client, room_id, msg)
