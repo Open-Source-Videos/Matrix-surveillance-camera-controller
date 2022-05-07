@@ -176,7 +176,8 @@ async def snapshot_upload(client, room_id, camera, requestor_id = 0):
             i += 1
 
         logger.info("Snapshot should be taken. Attempting to upload")
-        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send", text=str(camera))
+        msg_text = str(camera) + "," + str(datetime.now().isoformat())
+        result = await send_image(client, room_id, impath, requestor_id = str(requestor_id), msg_type="snapshot-send", text=msg_text)
         if result != "success":
             msg = '{"type" : "error", "content" :"' + result + '", "requestor_id":"' + str(requestor_id) + '"}'
             await send_message(client, room_id, msg)
@@ -214,6 +215,25 @@ def write_details_to_disk(resp: LoginResponse, homeserver, room_id) -> None:
             },
             f
         )
+
+
+#Extracts a time stamp from a given filename. Files are assumed to be in the recording path, and either be .mp4 or .thumb.
+#If the above conditions aren't met, it simply returns the current time.
+def extract_time_stamp(filename):
+    tformat = "%Y-%m-%d %H-%M-%S"
+    try:
+        t_arr = filename.replace(RECORDING_PATH, '').split('/')
+        if t_arr[2].endswith('.mp4'):
+            timestamp = t_arr[1] + " " + t_arr[2].replace('.mp4', '')
+        elif t_arr[2].endswith('.mp4.thumb'):
+            timestamp = t_arr[1] + " " + t_arr[2].replace('.mp4.thumb', '')
+        else:
+            return datetime.now().isoformat()
+        return datetime.strptime(timestamp, tformat).isoformat()
+    except Exception as e:
+        logger.info("Error in extracting a time stamp for filename: " + filename)
+        logger.info("Error in extracting a time stamp... Exception:  " + e)
+        return datetime.now().isoformat()
 
 #Formats a camera configuration send event, and sends it.
 async def send_cam_configs(client, room_id):
@@ -315,7 +335,7 @@ async def send_image(client, room_id, image, requestor_id = "0", msg_type = "bla
         logger.info(f"Failed to upload image. Failure response: {resp}")
         return "Failed to upload file"
 
-    msg = '{"type":"' + msg_type + '", "content" : "' + text + '", "requestor_id":"' + requestor_id + '"}'
+    msg = '{"type":"' + msg_type + '", "content" : "' + text + "," + str(extract_time_stamp(image)) + '", "requestor_id":"' + requestor_id + '"}'
 
     # Now that the image has been uploaded, we need to message the room with this uploaded file.
     content = {
@@ -421,7 +441,7 @@ async def send_video(client, room_id, video, msg_type="blank", requestor_id="0")
         return "Video send of file " + video + "failed."
 
     # Now that the video has been uploaded, we need to message the room with this uploaded file.
-    msg = '{"type":"' + msg_type + '", "content" : "' + os.path.basename(video) + '", "requestor_id":"' + requestor_id + '"}'
+    msg = '{"type":"' + msg_type + '", "content" : "' + str(video) + "," + str(extract_time_stamp(video)) + '", "requestor_id":"' + requestor_id + '"}'
 
     #Build content package for message
     content = {
@@ -501,7 +521,7 @@ class Callback():
                 if message_data['type'] == "thumb-request":
                     if message_data['content'].endswith('.thumb'):
                         logger.info("Attempting to upload thumbnail for file: " + message_data['content'])
-                        result = await send_image(self.client, self.room_id, message_data['content'], requestor_id = message_data['requestor_id'], msg_type = "thumb-send", text = message_data['content'])
+                        result = await send_image(self.client, self.room_id, message_data['content'], requestor_id = message_data['requestor_id'], msg_type = "thumb-reply", text = message_data['content'])
                         if result != 'success':
                             msg = '{"type" : "error", "content" : "' + result + '", "requestor_id" : "' + message_data['requestor_id'] + '"}'
                             await send_message(self.client, self.room_id, msg)
@@ -565,7 +585,7 @@ class Callback():
                                                     dtf = datetime.strptime(dt, tformat) #Convert to datetime.datetime type
                                                     if dtf >= startDate and dtf <= endDate: #Compare datetime of file
                                                         logger.info("Found Path in range: " + f.path)
-                                                        files_in_range.append(f.path) #A file that passes above checks must be within specified date range, add to list
+                                                        files_in_range.append([f.path, str(extract_time_stamp(f.path))]) #A file that passes above checks must be within specified date range, add to list
                         await send_recording_list(self.client, self.room_id, message_data['content'], files_in_range, msg_type = "list-recording-reply", requestor_id = message_data['requestor_id'])
 
                     except Exception as e:

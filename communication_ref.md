@@ -19,25 +19,25 @@ Example:
 `{"type" : "error", "content" : "File Upload Failed", "requestor_id":"0"}`
 
 ### snapshot-send: 
-content = string - is the camera ID for the snapshot whose picture is taken. This is the reply to a snapshot request.
+content = string - is the camera ID for the snapshot whose picture is taken, comma separated is the time at which the image is taken. This is the reply to a snapshot request.
 
 Example:
 
-`{"type" : "snapshot-send", "content" : "1", "requestor_id":"client_that_requested"}`
+`{"type" : "snapshot-send", "content" : "1,2022-05-06T13:04:04.482374", "requestor_id":"client_that_requested"}`
 
 ### video-send: 
-content = string - contains the path / name of the video. This is sent to the client that requested it.
+content = string - contains the path / name of the video, followed by the ISO datetime that the video was recorded. This is sent to the client that requested it.
 
 Example:
 
-`{"type" : "video-send", "content" : "/var/lib/motioneye/Camrea1/02-05-2021/15-25-30.mp4", "requestor_id":"client_that_requested"}`
+`{"type" : "video-send", "content" : "/var/lib/motioneye/Camrea1/02-05-2022/15-25-30.mp4,2022-02-05T15:25:30", "requestor_id":"client_that_requested"}`
 
 ### thumbnail: 
-content = string. Upon a motion detection event a thumbnail is uploaded to everyone when the video has been recorded.
+content = string. The content is the path / name of the thumbnail and video, followed by the ISO datetime that the video was recorded. Upon a motion detection event a thumbnail is uploaded to everyone when the video has been recorded.
 
 Example:
 
-`{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"0"}`
+`{"type" : "thumbnail", "content" : "/var/lib/motioneye/Camera1/02-05-2022/15-25-30.mp4.thumb, 2022-02-05T15:25:30", "requestor_id":"0"}`
 
 
 ### thumb-reply: 
@@ -45,16 +45,16 @@ content = string. When a thumbnail for a particular video is requested this repl
 
 Example:
 
-`{"type" : "thumb-reply", "content" : "/var/lib/motioneye/Camera1/02-05-2021/15-25-30.mp4.thumb", "requestor_id":"client_that_requested"}`
+`{"type" : "thumb-reply", "content" : "/var/lib/motioneye/Camera1/02-05-2022/15-25-30.mp4.thumb, 2022-02-05T15:25:30", "requestor_id":"client_that_requested"}`
 
 
 
 ### list-recording-reply:
-content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the file paths to the found video thumbnails. These thumbnail file paths can then be used to request the videos.
+content = string. Upon user request to list out stored video thumbnails from a specified date range, the output will be a json containing the 'date_range' which was provided in the original request, and an array of the pairs of file paths to the found video thumbnails, and their time stamps. These thumbnail file paths can then be used to request the videos.
 
 Example:
 
-`{"type" : "list-recording-reply", "content" : "{'date_range': '2022-04-28T10:30:00, 2022-04-30T20:45:30', 'recordings': ['/var/lib/motioneye/Camera1/2022-04-29/03-30-03.mp4.thumb', '/var/lib/motioneye/Camera1/2022-04-29/03-15-50.mp4.thumb']}", "requestor_id" : "0"}`
+`{"type" : "list-recording-reply", "content" : "{'date_range': '2022-05-06T00:00:01, 2022-05-06T14:10:00', 'recordings': [['/var/lib/motioneye/Camera1/2022-05-06/00-58-33.mp4.thumb', '2022-05-06T00:58:33'], ['/var/lib/motioneye/Camera1/2022-05-06/12-31-45.mp4.thumb', '2022-05-06T12:31:45'], ['/var/lib/motioneye/Camera1/2022-05-06/01-01-20.mp4.thumb', '2022-05-06T01:01:20']]}", "requestor_id" : "my_client_name"}`
 
 
 ## Types of messages TO camera hub
@@ -95,16 +95,6 @@ content = string. The content needs to contain the camera and the duration comma
 
 Expected reply is a motion detection event after the specified duration.
 
-### list-video:
-
-content = string. The content string is broken into the camera parameter and the date parameter. For example, "1,2022-04-08" will refer to files from the camera identified as "camera 1" that were taken on the date 2022-04-08.
-
-Example:
-
-`{"type" : "list-video", "content" : "1,2022-04-08", "requestor_id" : "0"}`
-
-Expected reply is a series of file paths that point to stored video thumbnail files located in the specified camera and date directories.
-
 ### cam-config-request: 
 content = string. Content can be null. This will just request to that camera hub send out an updated list of cameras.
 Example:
@@ -114,7 +104,7 @@ Example:
 Expected reply is a cam-config message.
 
 ### list-recordings:
-content = string. String should be two dates. Start Datetime, followed by end datetime, 24 hour clock. 'stardatetime, enddatetime' in the format 'YYYY-MM-DD HH-MM-SS, YYYY-MM-DD HH-MM-SS'.
+content = string. String should be two dates. Start Datetime, followed by end datetime, 24 hour clock. 'stardatetime, enddatetime' in the format 'YYYY-MM-DDTHH:MM:SS,YYYY-MM-DDTHH:MM:SS'.
 The following example will request a list of recordings between April 27th 2022, at 10:30:00 AM, and April 28th 2022, at 2:45:30 PM.
 
 `{"type" : "list-recordings", "content" : "2022-04-27T10:30:00, 2022-04-28T14:45:30", "requestor_id":"my_client_name"}`
