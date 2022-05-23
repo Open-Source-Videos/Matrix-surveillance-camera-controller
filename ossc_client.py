@@ -12,12 +12,13 @@ from PIL import Image
 import aiofiles.os
 import magic
 import logging
+from logging.handlers import RotatingFileHandler
 
 #File watcher, async
 from watchdog.observers import Observer
 
 #MATRIX NIO SDK classes
-from nio import AsyncClient, AsyncClientConfig, LoginResponse, UploadResponse, RoomResolveAliasError, RoomMessageText, RoomMessage
+from nio import AsyncClient, AsyncClientConfig, LoginResponse, UploadResponse, RoomResolveAliasError, RoomMessageText, RoomMessage, Event, OlmEvent
 
 
 #Configuration setup
@@ -42,6 +43,8 @@ try:
     #Setup for logging
     logging.basicConfig(filename=(LOG_PATH + "ossc_client.log"),level=logging.INFO, format='%(asctime)s - %(message)s') #Config without an output file
     logger = logging.getLogger("ossc_client_log")
+    handler = RotatingFileHandler((LOG_PATH + "ossc_client.log"), maxBytes=1048576, backupCount=20)
+    logger.addHandler(handler)
 except Exception as e:
     print("Logging directory not found. Please check config, and or create the correct directory. Exiting")
     print(e)
@@ -266,6 +269,10 @@ async def send_message(client, room_id, message_text):
     try:
         if client.should_upload_keys:
             await client.keys_upload()
+        if client.should_query_keys:
+            await client.keys_query()
+        if client.should_claim_keys:
+            await client.keys_claim(client.get_users_for_key_claiming())
     except Exception as e:
         logger.info("Problem synching keys: " + str(e))
 
@@ -335,7 +342,11 @@ async def send_image(client, room_id, image, requestor_id = "0", msg_type = "bla
         logger.info(f"Failed to upload image. Failure response: {resp}")
         return "Failed to upload file"
 
-    msg = '{"type":"' + msg_type + '", "content" : "' + text + "," + str(extract_time_stamp(image)) + '", "requestor_id":"' + requestor_id + '"}'
+    if msg_type == "snapshot-send":
+        msg = '{"type":"' + msg_type + '", "content" : "' + text + '", "requestor_id":"' + requestor_id + '"}'
+    else:
+        msg = '{"type":"' + msg_type + '", "content" : "' + text + "," + str(extract_time_stamp(image)) + '", "requestor_id":"' + requestor_id + '"}'
+
 
     # Now that the image has been uploaded, we need to message the room with this uploaded file.
     content = {
@@ -598,13 +609,41 @@ class Callback():
                     logger.info("Message not for this client, or improperly formatted") 
             except Exception as e:
                 logger.error("Action on incoming message error: " + str(e))
+        else:
+            logger.info("Event not a room message, or encrypted: " + str(event))
+            message_data = event.source
+            if(message_data['type'] == 'm.room.encrypted'):
+                try:
+                    logger.info("Trying to get missing sessions and keys")
+                    event.as_key_request(message_data['sender'], self.client.device_id, event.session_id)
+                    key_requests = self.client.get_active_key_requests(event.sender, event.device_id)
+                    missing_sessions = self.client.get_missing_sessions(self.room_id)
+                    users_for_keys = self.client.get_users_for_key_claiming()
+                    logger.info("Session: " + event.session_id + " ... Active key requests: " + str(key_requests))
+                    logger.info("Missing sessions: " + str(missing_sessions))
+                    logger.info("Get Users for Key claiming: " + str(users_for_keys))
+                    await self.client.keys_claim(self.client.get_missing_sessions(self.room_id))
+                    await self.client.keys_query()
+                    await self.client.keys_claim(self.client.get_users_for_key_claiming())
+                    decrypted_event = await self.client.decrypt_event(event)
+                    await self.message_receive_callback(room, decrypted_event)
+                except Exception as e:
+                    logger.info("Problem in synch and decrypt event: " + str(e))
+                    await send_message(self.client, self.room_id, ("Unable to decrypt a message. No session exists for: " + event.session_id + ". Please upload one time keys so a session can be established."))
+
+            else:
+                await self.client.keys_claim(self.client.get_missing_sessions(self.room_id))
+                if self.client.should_query_keys:
+                    await self.client.keys_query()
+                if self.client.should_claim_keys:
+                    await self.client.keys_claim(self.client.get_users_for_key_claiming())
         return
 
 
 #Listener creates the callbacks class and then says to wait forever.
 async def start_listening(client, room_id) -> None:
     callback = Callback(client, room_id)
-    client.add_event_callback(callback.message_receive_callback, (RoomMessageText, RoomMessage))
+    client.add_event_callback(callback.message_receive_callback, (RoomMessageText, RoomMessage, Event))
     while True:
         try:
             await client.sync_forever(timeout=30000, full_state=True)

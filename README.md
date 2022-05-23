@@ -5,6 +5,43 @@ Note that the Raspberry Pi foundation broke their old camera support in Nov of 2
 
 Why can't we just use Raspian Buster? Well, the problem with this is that Buster used an older version of python3, and some of the other dependencies for Matrix NIO aren't compatible with Buster. So we'll need to stick with Bullseye. Plus, hitching our cart to the legacy version of Raspian isn't a recipe for long term success.
 
+# Install Scripts
+Shell scripts for installing on Ubuntu 22.04, and a raspberry pi 4 (using Raspian Bullseye) are included in the installers folder. These are essentially setup for an install on a clean OS. So if you're installing on an existing system or a different OS, you should follow the manual installation steps. 
+
+## Using Install Scripts
+To use the install scripts you will need to download the repository, for example using a git clone.
+
+```
+git clone https://github.com/Open-Source-Videos/Matrix-surveillance-camera-controller
+```
+
+Make your chosen installer executable. Then move the install script that you're using into the repos base directory.
+
+```
+cd Matrix-surveillance-camera-controller
+chmod +x ./installers/r_pu_4_installer.sh
+mv ./installers/r_pi_4_installer.sh .
+```
+
+Then you need to run it. This will involve installing various dependencies, and moving files around, so it will need to be run as sudo.
+
+```
+sudo ./r_pi_4_installer.sh
+```
+
+This will take some time to run. If it fails, try the manual installation. After complete, you will need to run the controller program once manually to configure it to work with your matrix room. You will need to have a user and room already setup to link the controller to.
+
+```
+sudo python3 /var/lib/ossc_client/ossc_client.py
+```
+
+You will be prompted to input your homeserver, username, password, and room ID for the matrix room to link to. After this, restart the controller service.
+
+```
+sudo systemctl restart ossc_client
+```
+Done!
+
 # Raspberry Pi setup. This specifically is for the Raspberry Pi 4. 
 
 ## 1: Install raspian lite - 32bit (Bullseye)
@@ -91,7 +128,6 @@ All done. MotionEye should be installed and running. Next we need to install the
 
 # Installing Matrix NIO on a Raspberry Pi 4
 Your needs and setup my be different if not using a Raspberry Pi 4. You will need Raspian Bullseye for this next portion to work though, as many of the dependencies don't exist for earlier versions of Raspian (buster for example).
-
 ### === Additional things to add to cam maybe. Testing stuff ===
 ```
 sudo apt-get -y install python3-pip
@@ -126,52 +162,67 @@ MotionEye
 MatrixNio
 Watchdog
 
-sudo python3 -m pip install watchdog
 
-Install procedure pending finishing up of client alpha software.
+```
+sudo python3 -m pip install watchdog
+```
 
 Create directories for the client
+
+```
 sudo mkdir /var/lib/ossc_client
 sudo mkdir /var/lib/ossc_client/log
 sudo mkdir /var/lib/ossc_client/credentials
+```
 
 Move files to their correct locations - This assumes you've copied them to the device and are in their current directory.
+
+```
 sudo mv ./ossc_client.py /var/lib/ossc_client
 sudo mv ./config.cfg /var/lib/ossc_client
 sudo mv ./ossc_client_service.sh /var/lib/ossc_client
+```
 
 Setup the service
+```
 sudo ln -s /var/lib/ossc_client/ossc_client_service.sh /etc/init.d
 sudo update-rc.d ossc_client_service.sh defaults
+```
 
 How to uninstall service:
+```
 update-rc.d ossc_client_service.sh remove 
+```
+
+Next you need to connect it to your matrix server, and room. You need to have the homeserver, username, password, and the room ID already setup and ready for this.
+
+```
+sudo python3 /var/lib/ossc_client/ossc_client.py
+```
+
+You will be prompted to input your homeserver, username, password, and room ID for the matrix room to link to. After this, restart the controller service.
+
+```
+sudo systemctl restart ossc_client
+```
+Done!
 
 
+# Log into different room
+By default the camera client will always reconnect to the same room. To log it into a different room you will need to remove its credentials files, and then re-run it manually.
 
-# Notes for things to do
+```
+cd /var/lib/ossc_client/credential/
+sudo rm *.*
+sudo python3 /var/lib/ossc_client/ossc_client.py
+```
 
-DONE - ADD functionality for monitoring camera configs.
-DONE - ADD Functionality so client keeps track of camera config too
-DONE - Eliminate Hachiko dependency.
-DONE - NEEDS CHECKING POSSIBLE REFACTOR - ADD ID to messages / requests
-DONE - For Raspberry PI 4 - Create install / setup script
-DONE - Create video on demand service.
-DONE - Replace "is_for" with "requestor_id"
-DONE - Synch keys on every message send.
-DONE - Refactor send_image function to allow for custom "content" in JSON for send.
+Fill out your login details as prompted, then restart the client service.
+
+```
+sudo systemctl restart ossc_client
+```
 
 
-TODO - Encrypted Key Backup
-TODO - Network loss tolerance check
-TODO - Unit tests
-TODO - QR setup maybe?
-TODO - History video request.
-TODO - Notify front End if storage is full.
-
-## For QR reader we will need extra tools:
-
-[sudo] python3 -m pip install qrtools
-[sudo] python3 -m pip install pypng
-[sudo] python3 -m pip install pyzbar
-
+# Troubleshooting issues
+Logs are kept in the /var/lib/ossc_client/logs folder. These can be useful in determining cause of issues.
