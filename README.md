@@ -1,12 +1,12 @@
 # Installation Notes
-This guide is for installing on a Raspberry Pi 4. However, you can use any version of linux where you're able to get the dependencies working. The details of installing on anything else will be left up to you, but this guide will most likely be a good starting point anyway. 
+This guide is for installing on a Raspberry Pi 4 Bullseye (32bit). However, you can use any version of linux where you're able to get the dependencies working. The details of installing on anything else will be left up to you, but this guide will most likely be a good starting point anyway. 
 
 Note that the Raspberry Pi foundation broke their old camera support in Nov of 2021, and Motion and MotionEye don't work Raspberry Pi integrated cameras anymore. However, it still works with networked cameras, usb cameras or other types that are supported by Motion. The nice thing about this is that you can still use MotionEyeOS on a Raspberry Pi with an integrated camera, set it up as a network cam, then have this installed on a hub that handles the recording and remote communications. If this situation changes, you will likely be able to install this matrix-chat based security cam setup directly on a Raspberry Pi with an integrated camera following the same setup, only differing in the install of MotionEye.
 
 Why can't we just use Raspian Buster? Well, the problem with this is that Buster used an older version of python3, and some of the other dependencies for Matrix NIO aren't compatible with Buster. So we'll need to stick with Bullseye. Plus, hitching our cart to the legacy version of Raspian isn't a recipe for long term success.
 
 # Install Scripts
-Shell scripts for installing on Ubuntu 22.04, and a raspberry pi 4 (using Raspian Bullseye) are included in the installers folder. These are essentially setup for an install on a clean OS. So if you're installing on an existing system or a different OS, you should follow the manual installation steps. 
+Shell scripts for installing on Ubuntu 22.04, and a raspberry pi 4 (using Raspian Bullseye 32 bit) are included in the installers folder. These are essentially setup for an install on a clean OS. So if you're installing on an existing system or a different OS, you should follow the manual installation steps. 
 
 ## Using Install Scripts
 To use the install scripts you will need to download the repository, for example using a git clone.
