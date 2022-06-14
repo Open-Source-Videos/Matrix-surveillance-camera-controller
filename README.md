@@ -1,12 +1,12 @@
 # Installation Notes
-This guide is for installing on a Raspberry Pi 4 Bullseye (32bit). However, you can use any version of linux where you're able to get the dependencies working. The details of installing on anything else will be left up to you, but this guide will most likely be a good starting point anyway. 
+This guide is for installing on a Raspberry Pi 4 Bullseye (32bit). However, you can use any version of Linux where you're able to get the dependencies working. The details of installing on anything else will be left up to you, but this guide will most likely be a good starting point anyway. 
 
-Note that the Raspberry Pi foundation broke their old camera support in Nov of 2021, and Motion and MotionEye don't work Raspberry Pi integrated cameras anymore. However, it still works with networked cameras, usb cameras or other types that are supported by Motion. The nice thing about this is that you can still use MotionEyeOS on a Raspberry Pi with an integrated camera, set it up as a network cam, then have this installed on a hub that handles the recording and remote communications. If this situation changes, you will likely be able to install this matrix-chat based security cam setup directly on a Raspberry Pi with an integrated camera following the same setup, only differing in the install of MotionEye.
+Note that the Raspberry Pi foundation broke their old camera support in Nov of 2021, and Motion and MotionEye don't work Raspberry Pi integrated cameras anymore. However, it still works with networked cameras, USB cameras or other types that are supported by Motion. The nice thing about this is that you can still use MotionEyeOS on a Raspberry Pi with an integrated camera, set it up as a network cam, then have this installed on a hub that handles the recording and remote communications. If this situation changes, you will likely be able to install this matrix-chat based security cam setup directly on a Raspberry Pi with an integrated camera following the same setup, only differing in the installation of MotionEye.
 
 Why can't we just use Raspian Buster? Well, the problem with this is that Buster used an older version of python3, and some of the other dependencies for Matrix NIO aren't compatible with Buster. So we'll need to stick with Bullseye. Plus, hitching our cart to the legacy version of Raspian isn't a recipe for long term success.
 
 # Install Scripts
-Shell scripts for installing on Ubuntu 22.04, and a raspberry pi 4 (using Raspian Bullseye 32 bit) are included in the installers folder. These are essentially setup for an install on a clean OS. So if you're installing on an existing system or a different OS, you should follow the manual installation steps. 
+Shell scripts for installing on Ubuntu 22.04, and a Raspberry Pi 4 (using Raspian Bullseye 32 bit) are included in the installers folder. These are essentially setup for an installation on a clean OS. So if you're installing on an existing system or a different OS, you should follow the manual installation steps. 
 
 ## Using Install Scripts
 To use the install scripts you will need to download the repository, for example using a git clone.
@@ -19,7 +19,7 @@ Make your chosen installer executable. Then move the install script that you're 
 
 ```
 cd Matrix-surveillance-camera-controller
-chmod +x ./installers/r_pu_4_installer.sh
+chmod +x installers/r_pi_4_installer.sh
 mv ./installers/r_pi_4_installer.sh .
 ```
 
@@ -46,9 +46,9 @@ Done!
 
 ## 1: Install raspian lite - 32bit (Bullseye)
 Use Raspberry Pi Imager - https://www.raspberrypi.com/software/
-In the Raspberry Pi Imager select the appropriate operating system from the menu. Press ctrl-x (or press the gear icon) to bring up config menu. Enable SSH, select a password, username will be 'pi' by default. Make sure to enable wifi and configure too, and setup region details.
+In the Raspberry Pi Imager select the appropriate operating system from the menu. Press ctrl-x (or press the gear icon) to bring up config menu. Enable SSH, select a password, username will be 'pi' by default. Make sure to enable Wi-Fi and configure too, and setup region details.
 
-write your image to your micro SD Card.
+Write your image to your micro SD Card.
 
 SSH into the raspberry... Look up the IP it got on your local router if needed.
 
@@ -119,7 +119,7 @@ sudo systemctl start motioneye
 ## 9: Add to MotionEye:
 This is something you will need to work out with your particular setup, as you can use basically anything compatible with MotionEye.
 Again, this won't work with the integrated Raspberry Pi camera yet, as MotionEye hasn't been updated (at this time) to use the new Raspberry Pi camera stack. You can use other types of cameras as specified in their documentation.
-You can however, use a raspberry pi camera setup to be a network cam. For example I setup my pi zero using "MotionEyeOS", then in its settings under "expert settings" enabled "Fast Network Cam" which just streams the camera output to an address which can be found under stream settings. Mine for example was located at http://192.168.0.198:8081/ Then on my controller Raspberry Pi 4 I added this camera as a network cam. I couldn't get MotionEye recording to work correctly with the cam setup as a remote MotionEye camera, this is because the remote camera will record on the remote device, and not the camera hub. So use a Fast Network Cam Setup.
+You can however, use a Raspberry Pi camera setup to be a network cam. For example, I setup my pi zero using "MotionEyeOS", then in its settings under "expert settings" enabled "Fast Network Cam" which just streams the camera output to an address which can be found under stream settings. Mine for example was located at http://192.168.0.198:8081/ Then on my controller Raspberry Pi 4 I added this camera as a network cam. I couldn't get MotionEye recording to work correctly with the cam setup as a remote MotionEye camera, this is because the remote camera will record on the remote device, and not the camera hub. So use a Fast Network Cam Setup.
 
 ## 10: Configure MotionEye
 Setup movies and motion detection. You will want to experiment to see what is right for you, as motion has plenty of options for masking areas, and thresholds for recording. One setting that you might want to tweak right away is the frame rate on the video device, as by default its set to 2. Bumping it up to 10 seems pretty good for my purposes, and should help keep video sizes down.
@@ -127,7 +127,7 @@ Setup movies and motion detection. You will want to experiment to see what is ri
 All done. MotionEye should be installed and running. Next we need to install the Matrix Communication Dependencies.
 
 # Installing Matrix NIO on a Raspberry Pi 4
-Your needs and setup my be different if not using a Raspberry Pi 4. You will need Raspian Bullseye for this next portion to work though, as many of the dependencies don't exist for earlier versions of Raspian (buster for example).
+Your needs and setup may be different if not using a Raspberry Pi 4. You will need Raspian Bullseye for this next portion to work though, as many of the dependencies don't exist for earlier versions of Raspian (buster for example).
 ### === Additional things to add to cam maybe. Testing stuff ===
 ```
 sudo apt-get -y install python3-pip
